@@ -1,159 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Comment Search</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-
-        .search-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 70%;
-            padding: 10px;
-            margin-right: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #ff004f;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #e00045;
-        }
-
-        .sort-buttons {
-            margin: 20px 0;
-            display: flex;
-            gap: 10px;
-        }
-
-        .comment-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .comment {
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            color: #666;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body>
-    <div class="search-container">
-        <h1>TikTok Comment Search</h1>
-        <input type="text" id="videoUrl" placeholder="Enter TikTok video URL...">
-        <button onclick="fetchComments()">Search</button>
-        
-        <div class="sort-buttons">
-            <button onclick="sortRecent()">Sort by Recent</button>
-            <button onclick="sortOld()">Sort by Old</button>
-        </div>
-    </div>
-
-    <div class="comment-section" id="commentsContainer">
-        <!-- Comments will be loaded here -->
-    </div>
-
+    <meta property="og:title" content="Dynamic Media Embed">
+    <meta property="og:type" content="video.other">
+    <meta property="og:image" id="og-image">
+    <meta property="og:video" id="og-video">
+    <meta property="og:video:type" content="video/mp4">
+    <meta property="twitter:player" id="twitter-player">
+    <meta name="twitter:card" content="player">
     <script>
-        let currentComments = [];
-
-        // Mock comments data - in real implementation you would use TikTok API
-        const mockComments = [
-            { username: 'user1', text: 'This is amazing! 😍', timestamp: new Date('2024-03-15T10:00:00') },
-            { username: 'user2', text: 'First comment! 🥇', timestamp: new Date('2024-03-15T09:30:00') },
-            { username: 'user3', text: 'Love this! ❤️', timestamp: new Date('2024-03-15T11:15:00') },
-            { username: 'user4', text: 'So creative! 👏', timestamp: new Date('2024-03-15T10:45:00') },
-        ];
-
-        async function fetchComments() {
-  const videoUrl = document.getElementById('videoUrl').value;
-  
-  try {
-    // Explicit URL (replace 3000 with your backend port)
-    const response = await fetch('http://localhost:3000/api/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoUrl })
-    });
-    
-    const data = await response.json();
-    currentComments = data.comments.map(c => ({
-      ...c,
-      timestamp: new Date(c.timestamp)
-    }));
-    
-    renderComments(currentComments);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-        function renderComments(comments) {
-            const container = document.getElementById('commentsContainer');
-            container.innerHTML = '';
-
-            comments.forEach(comment => {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                
-                const header = document.createElement('div');
-                header.className = 'comment-header';
-                header.innerHTML = `
-                    <span>@${comment.username}</span>
-                    <span>${comment.timestamp.toLocaleString()}</span>
-                `;
-
-                const text = document.createElement('p');
-                text.textContent = comment.text;
-
-                commentDiv.appendChild(header);
-                commentDiv.appendChild(text);
-                container.appendChild(commentDiv);
-            });
+        function sanitizeUrl(url) {
+            try {
+                const parsed = new URL(url);
+                return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
+            } catch (e) {
+                console.error('Invalid URL:', e);
+                return '';
+            }
         }
 
-        function sortRecent() {
-            const sorted = [...currentComments].sort((a, b) => b.timestamp - a.timestamp);
-            renderComments(sorted);
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoUrl = urlParams.get('video');
+            const gifUrl = urlParams.get('gif');
 
-        function sortOld() {
-            const sorted = [...currentComments].sort((a, b) => a.timestamp - b.timestamp);
-            renderComments(sorted);
-        }
+            const sanitizedVideo = videoUrl ? sanitizeUrl(videoUrl) : '';
+            const sanitizedGif = gifUrl ? sanitizeUrl(gifUrl) : '';
+
+            document.getElementById('og-image').setAttribute('content', sanitizedGif);
+            document.getElementById('og-video').setAttribute('content', sanitizedVideo);
+            document.getElementById('twitter-player').setAttribute('content', sanitizedVideo);
+            
+            const iframe = document.getElementById('video-iframe');
+            iframe.src = sanitizedVideo;
+        });
     </script>
+</head>
+<body style="display:none;">
+    <iframe id="video-iframe" style="width:0;height:0;border:0;"></iframe>
 </body>
 </html>
