@@ -1,43 +1,121 @@
 <!DOCTYPE html>
-<html prefix="og: https://ogp.me/ns#">
-<head>
-    <meta charset="UTF-8">
-    <meta property="og:title" content="Dynamic Media Embed">
-    <meta property="og:type" content="video.other">
-    <meta property="og:image" id="og-image">
-    <meta property="og:video" id="og-video">
-    <meta property="og:video:type" content="video/mp4">
-    <meta property="twitter:player" id="twitter-player">
-    <meta name="twitter:card" content="player">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embedded Video with GIF Thumbnail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Open Graph and Twitter meta tags to control Discord preview -->
+    <meta property="og:title" content="Embedded Video" />
+    <meta property="og:description" content="Watch this video with a GIF preview thumbnail" />
+    <!-- The following og:url and og:image will help Discord show a rich preview without displaying the raw URL.
+         Replace the content values with your actual domain and desired preview image if needed -->
+    <meta property="og:url" content="https://your-website.com/embed.html" />
+    <meta property="og:image" content="https://your-website.com/path/to/default_preview.jpg" />
+    <meta name="twitter:card" content="player" />
+    <meta name="twitter:title" content="Embedded Video" />
+    <meta name="twitter:description" content="Watch this video with a GIF preview thumbnail" />
+    <meta name="twitter:player" content="https://your-website.com/embed.html" />
+    <meta name="twitter:player:width" content="1280" />
+    <meta name="twitter:player:height" content="720" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #video-container {
+        position: relative;
+        width: 80%;
+        max-width: 800px;
+        cursor: pointer;
+      }
+      video {
+        width: 100%;
+        height: auto;
+        display: none;
+      }
+      #thumbnail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        transition: opacity 0.3s ease;
+      }
+      #thumbnail.hidden {
+        opacity: 0;
+      }
+      #play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 80px;
+        height: 80px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #play-button:before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-left: 20px solid #fff;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="video-container">
+      <video id="video" controls preload="none">
+        Your browser does not support the video tag.
+      </video>
+      <div id="thumbnail">
+        <div id="play-button"></div>
+      </div>
+    </div>
     <script>
-        function sanitizeUrl(url) {
-            try {
-                const parsed = new URL(url);
-                return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
-            } catch (e) {
-                console.error('Invalid URL:', e);
-                return '';
-            }
+      (function () {
+        // Utility function to get URL parameters
+        function getQueryParam(param) {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get(param);
+        }
+        const videoUrl = getQueryParam("video");
+        const gifUrl = getQueryParam("gif");
+
+        // Validate parameters
+        if (!videoUrl || !gifUrl) {
+          document.body.innerHTML =
+            "<p style='color:white; text-align:center; padding:20px;'>Error: Missing video or gif URL parameters.</p>";
+          return;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const videoUrl = urlParams.get('video');
-            const gifUrl = urlParams.get('gif');
+        // Set the video src attribute
+        const videoElem = document.getElementById("video");
+        videoElem.src = videoUrl;
 
-            const sanitizedVideo = videoUrl ? sanitizeUrl(videoUrl) : '';
-            const sanitizedGif = gifUrl ? sanitizeUrl(gifUrl) : '';
+        // Set thumbnail background image using the provided gif URL
+        const thumbnailElem = document.getElementById("thumbnail");
+        thumbnailElem.style.backgroundImage = "url('" + gifUrl + "')";
 
-            document.getElementById('og-image').setAttribute('content', sanitizedGif);
-            document.getElementById('og-video').setAttribute('content', sanitizedVideo);
-            document.getElementById('twitter-player').setAttribute('content', sanitizedVideo);
-            
-            const iframe = document.getElementById('video-iframe');
-            iframe.src = sanitizedVideo;
+        // On click, hide the thumbnail overlay and start playing the video
+        document.getElementById("video-container").addEventListener("click", function () {
+          thumbnailElem.classList.add("hidden");
+          videoElem.style.display = "block";
+          videoElem.play();
         });
+      })();
     </script>
-</head>
-<body style="display:none;">
-    <iframe id="video-iframe" style="width:0;height:0;border:0;"></iframe>
-</body>
+  </body>
 </html>
